@@ -22,8 +22,7 @@ Report Types:
 
 The application allows reports to be generated, reports might include visual elements like graphs, charts, etc. sample reports like:
 
-1.	Properties Booked Between Given Date.
-
-2.	Monthly Payment summary of a customer (for multiple years).
-
-3.	Occupancy percentage of a property per year and so on.
+	(1) Due Amounts by Customer
+	(2) Number of apartments booked in each building
+	(3) Number of bookings after a particular date
+	(4) Apartment details of a particular building
