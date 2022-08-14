@@ -73,6 +73,8 @@ def tenant_response(connection,Cursor,email,password):
             password) + '";'
         Cursor.execute(UpdateQueryDueAmount)
         Cursor.execute("COMMIT;")
+        print()
+        print("payment is successfull")
 Start = True
 while Start == True:
     print("")
@@ -155,54 +157,70 @@ while Start == True:
             admin_option = 3
             validation = userid_validation(connection, name, password, admin_option)
             if len(validation) == 1:
-                UpdateQueryCount = 'UPDATE ADMIN SET ADMIN_ACCESS_COUNT = ADMIN_ACCESS_COUNT + 1 WHERE ADMIN_USERNAME = "' + str(
-                    name) + '" AND ADMIN_PASSWORD = "' + str(password) + '";'
-                Cursor.execute(UpdateQueryCount)
-                Cursor.execute("COMMIT;")
-                print()
-                print("""Choose an option:
-                                              (1) Due Amounts by Customer
-                                              (2) Number of apartments booked in each building
-                                              (3) Number of bookings after a particular date
-                                              (4) Apartment details of a particular building
-                                              """)
-                print()
-                staff_option = int(input("1, 2, 3, 4: "))
-                if staff_option == 1:
-                    DueData = pd.read_sql_query("select CUSTOMER_ID, DUE_AMOUNT FROM CUSTOMER;", connection)
-                    ax = DueData.plot.bar(x='CUSTOMER_ID', y='DUE_AMOUNT', rot=0, title="Due Amounts by Customer")
-                    plt.show()
-                elif staff_option == 2:
-                    ApartmentData = pd.read_sql_query("select APARTMENT_ID, BUILDING_ID FROM APARTMENT_LISTING WHERE BOOKING_FLAG = 'Y';", connection)
-                    ApartmentData = ApartmentData.groupby(['BUILDING_ID'])['BUILDING_ID'].size().reset_index(name='counts')
-                    print("Number of apartments booked in each building")
-                    print(ApartmentData)
-                    ax = ApartmentData.plot.bar(x='BUILDING_ID', y='counts', rot=0, title="Number of apartments booked in each building")
-                    plt.show()
-                elif staff_option == 3:
+                flag = True
+                while flag == True:
+                    UpdateQueryCount = 'UPDATE ADMIN SET ADMIN_ACCESS_COUNT = ADMIN_ACCESS_COUNT + 1 WHERE ADMIN_USERNAME = "' + str(
+                        name) + '" AND ADMIN_PASSWORD = "' + str(password) + '";'
+                    Cursor.execute(UpdateQueryCount)
+                    Cursor.execute("COMMIT;")
                     print()
-                    user_date = input("Number of bookings after Date(yyyy-mm-dd): ")
-                    countsql='select count(*) from APARTMENT_LISTING where BOOKED_DATE > "'+ str(user_date)+'";'
-                    Cursor.execute(countsql)
-                    row = Cursor.fetchall()
-                    count = row[0][0]
+                    print("""Choose an option:
+                                                  (1) Due Amounts by Customer
+                                                  (2) Number of apartments booked in each building
+                                                  (3) Number of bookings after a particular date
+                                                  (4) Apartment details of a particular building
+                                                  (5) Exit
+                                                  """)
                     print()
-                    print("Number of bookings after " + str(user_date) + " is :", count)
-                elif staff_option == 4:
-                    print()
-                    Building = int(input("BUILDING_ID: "))
-                    apartmentData = pd.read_sql_query(
-                        "SELECT APARTMENT_ID,APARTMENT_NAME, FLOOR, APARTMENT_SIZE,PRICE, BOOKING_FLAG "
-                        "from APARTMENT_LISTING where BUILDING_ID = " + str(Building) + " ;", connection)
-                    print()
-                    print(apartmentData)
-
+                    staff_option = int(input("1, 2, 3, 4, 5: "))
+                    if staff_option == 1:
+                        DueData = pd.read_sql_query("select CUSTOMER_ID, DUE_AMOUNT FROM CUSTOMER;", connection)
+                        ax = DueData.plot.bar(x='CUSTOMER_ID', y='DUE_AMOUNT', rot=0, title="Due Amounts by Customer")
+                        plt.legend()
+                        plt.show()
+                    elif staff_option == 2:
+                        ApartmentData = pd.read_sql_query("SELECT APARTMENT_ID, BUILDING_ID FROM APARTMENT_LISTING WHERE BOOKING_FLAG = 'Y';", connection)
+                        ApartmentData = ApartmentData.groupby(['BUILDING_ID'])['BUILDING_ID'].size().reset_index(name='counts')
+                        print("Number of apartments booked in each building")
+                        print(ApartmentData)
+                        ax = ApartmentData.plot.bar(x='BUILDING_ID', y='counts', rot=0, title="Number of apartments booked in each building")
+                        plt.legend()
+                        plt.show()
+                    elif staff_option == 3:
+                        print()
+                        user_date = input("Number of bookings after Date(yyyy-mm-dd): ")
+                        countsql='select count(*) from APARTMENT_LISTING where BOOKED_DATE > "'+ str(user_date)+'";'
+                        Cursor.execute(countsql)
+                        row = Cursor.fetchall()
+                        count = row[0][0]
+                        print()
+                        print("Number of bookings after " + str(user_date) + " is :", count)
+                        BookingData = pd.read_sql_query('select APARTMENT_ID, BOOKED_DATE FROM APARTMENT_LISTING where BOOKED_DATE > "'+ str(user_date)+'";', connection)
+                        booking = BookingData['BOOKED_DATE'].value_counts()
+                        booking.plot.pie(autopct=lambda x: '{:.0f}'.format(x * booking.sum() / 100))
+                        plt.legend()
+                        plt.title("Number of bookings by Date")
+                        plt.show()
+                    elif staff_option == 4:
+                        print()
+                        Building = int(input("BUILDING_ID: "))
+                        apartmentData = pd.read_sql_query(
+                            "SELECT APARTMENT_ID,APARTMENT_NAME, FLOOR, APARTMENT_SIZE,PRICE, BOOKING_FLAG "
+                            "from APARTMENT_LISTING where BUILDING_ID = " + str(Building) + " ;", connection)
+                        print()
+                        print(apartmentData)
+                        print()
+                    else:
+                        print()
+                        print("Thank you for visiting!")
+                        print()
+                        flag = False
             else:
                 print()
                 print("Invalid credentials. Please try again!")
         except ValueError:
             continue
-    else :
+    else:
         try:
             print()
             print("Thank you for visiting!")
