@@ -43,28 +43,35 @@ def tenant_response(connection,Cursor,email,password):
                                   "from APARTMENT_LISTING where BUILDING_ID ==" + str(BuildingID) + " and BOOKING_FLAG = 'N' ;", connection)
 
         print()
-        print("The apartments available in the BuildingID: " + str(BuildingID) + "are below")
+        print("The apartments available in the BuildingID: " + str(BuildingID) + " are below")
         print(dataf)
-        print(""" Enter the APARTMENT_ID you would like to book""")
-        ApartmentID = int(input("APARTMENT_ID: "))
-        StartDate =input("Starting Date(yyyy-mm-dd): ")
-        UpdateQueryFlag = 'UPDATE APARTMENT_LISTING SET BOOKING_FLAG = "Y" , BOOKED_DATE ="'+ str(datetime.today().strftime('%Y-%m-%d')) +'" WHERE APARTMENT_ID = ' + str(
-            ApartmentID) + ' AND BUILDING_ID = ' + str(BuildingID) + ';'
-        Cursor.execute(UpdateQueryFlag)
-        Cursor.execute("COMMIT;")
-        SelectQueryPrice = "SELECT PRICE FROM APARTMENT_LISTING WHERE APARTMENT_ID =" +str(ApartmentID)+" AND BUILDING_ID = " + str(BuildingID)+ ";"
-        Cursor.execute(SelectQueryPrice)
-        row = Cursor.fetchall()
-        price = row[0][0]
-        UpdateQueryFlag = 'UPDATE CUSTOMER SET BUILDING_ID ='+ str(BuildingID) +',APARTMENT_ID='+str(ApartmentID)+', MONTHLYRENT ='+str(price)+',START_DATE ="'+str(StartDate)+ '", DUE_AMOUNT = '+ str(price) +' WHERE EMAIL = "' + str(email) + '" AND PASSWORD = "' + str(password) + '";'
-        print("Booking confirmed!")
-        Cursor.execute(UpdateQueryFlag)
-        Cursor.execute("COMMIT;")
+        if dataf.shape[0] == 0:
+            print()
+            print("there is no apartment available in this building")
+        else:
+            print()
+            print(""" Enter the APARTMENT_ID you would like to book""")
+            ApartmentID = int(input("APARTMENT_ID: "))
+            StartDate =input("Starting Date(yyyy-mm-dd): ")
+            UpdateQueryFlag = 'UPDATE APARTMENT_LISTING SET BOOKING_FLAG = "Y" , BOOKED_DATE ="'+ str(datetime.today().strftime('%Y-%m-%d')) +'" WHERE APARTMENT_ID = ' + str(
+                ApartmentID) + ' AND BUILDING_ID = ' + str(BuildingID) + ';'
+            Cursor.execute(UpdateQueryFlag)
+            Cursor.execute("COMMIT;")
+            SelectQueryPrice = "SELECT PRICE FROM APARTMENT_LISTING WHERE APARTMENT_ID =" +str(ApartmentID)+" AND BUILDING_ID = " + str(BuildingID)+ ";"
+            Cursor.execute(SelectQueryPrice)
+            row = Cursor.fetchall()
+            price = row[0][0]
+            UpdateQueryFlag = 'UPDATE CUSTOMER SET BUILDING_ID ='+ str(BuildingID) +',APARTMENT_ID='+str(ApartmentID)+', MONTHLYRENT ='+str(price)+',START_DATE ="'+str(StartDate)+ '", DUE_AMOUNT = '+ str(price) +' WHERE EMAIL = "' + str(email) + '" AND PASSWORD = "' + str(password) + '";'
+            print()
+            print("Booking confirmed!")
+            Cursor.execute(UpdateQueryFlag)
+            Cursor.execute("COMMIT;")
     if TenantResponse == 2:
         SelectQueryPrice = 'SELECT DUE_AMOUNT FROM CUSTOMER WHERE EMAIL = "' + str(email) + '" AND PASSWORD = "' + str(password) + '";'
         Cursor.execute(SelectQueryPrice)
         row = Cursor.fetchall()
         price = row[0][0]
+        print()
         print("Amount to be paid: ", price)
         AmountPaid = input("Enter the amount you would like to pay : ")
         Card = input("Enter the ATM Card number : ")
@@ -195,12 +202,16 @@ while Start == True:
                         count = row[0][0]
                         print()
                         print("Number of bookings after " + str(user_date) + " is :", count)
-                        BookingData = pd.read_sql_query('select APARTMENT_ID, BOOKED_DATE FROM APARTMENT_LISTING where BOOKED_DATE > "'+ str(user_date)+'";', connection)
-                        booking = BookingData['BOOKED_DATE'].value_counts()
-                        booking.plot.pie(autopct=lambda x: '{:.0f}'.format(x * booking.sum() / 100))
-                        plt.legend()
-                        plt.title("Number of bookings by Date")
-                        plt.show()
+                        if count == 0:
+                            print()
+                            print("No bookings!!!")
+                        else:
+                            BookingData = pd.read_sql_query('select APARTMENT_ID, BOOKED_DATE FROM APARTMENT_LISTING where BOOKED_DATE > "'+ str(user_date)+'";', connection)
+                            booking = BookingData['BOOKED_DATE'].value_counts()
+                            booking.plot.pie(autopct=lambda x: '{:.0f}'.format(x * booking.sum() / 100))
+                            plt.legend()
+                            plt.title("Number of bookings by Date")
+                            plt.show()
                     elif staff_option == 4:
                         print()
                         Building = int(input("BUILDING_ID: "))
